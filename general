@@ -1,0 +1,102 @@
+from pygame import *
+from random import randint
+
+class GameSprite(sprite.Sprite):
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed):
+        sprite.Sprite.__init__(self)
+        self.image = transform.scale(image.load(player_image), (size_x, size_y))
+        self.speed = player_speed
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+class Dinosaur(GameSprite):
+    def update(self):
+        key_press = key.get_pressed()
+        if key_press [K_w] and self.rect.y >= 140:
+            self.rect.y -= self.speed
+        if key_press [K_s] and self.rect.y <= 300:
+            self.rect.y += self.speed
+    def animation(self):
+        pass
+
+class Bird(GameSprite):
+    def update(self):
+        self.rect.x -= self.speed
+        if self.rect.x <= -100:
+            self.rect.x = 700
+            self.rect.y = randint(75, 150)
+
+class Cactus(GameSprite):
+    def update(self):
+        self.rect.x -= self.speed
+        if self.rect.x <= -100:
+            self.rect.x = randint(700, 1000)
+
+    def time(self):
+        global score
+        score += self.speed / 2
+
+class Ground(GameSprite):
+    def update(self):
+        self.rect.x -= self.speed
+        if self.rect.x <= -700:
+            self.rect.x = 0
+
+font.init()
+font2 = font.Font(None, 36)
+text_lose = font2.render('Ты проиграл!', True, (255, 255, 255))
+
+win_w = 700
+win_h = 500
+
+score = 0
+
+window = display.set_mode((win_w, win_h))
+display.set_caption('Dino-Run')
+background = transform.scale(image.load('background.png'), (win_w, win_h))
+
+game = True
+finish = False
+clock = time.Clock()
+FPS = 60
+
+dino = Dinosaur('cyber_dino.png', 50, 300, 100, 100, 3)
+cactus = Cactus('cactus.png', 700, 336, 150, 100, 1)
+ground = Ground('ground.png', 0, 436, 1900, 700, 1)
+bird = Bird('bird.png', 700, randint(75, 150), 100, 50, 1)
+
+while game:
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+        elif e.type == KEYDOWN:
+            if e.key == K_r:
+                game = True
+
+
+    if not finish:
+        window.blit(background, (0, 0))
+
+        text = font2.render('Score: ' + str(score), 1, (255,255,255))
+        window.blit(text, (10, 40))
+
+        dino.reset()
+        dino.update()
+        cactus.reset()
+        cactus.update()
+        cactus.time()
+        bird.reset()
+        bird.update()
+        ground.reset()
+        ground.update()
+        display.update()
+
+        if sprite.collide_rect(dino, cactus) or sprite.collide_rect(dino, bird):
+            finish = True
+            text_lose = font2.render('Ты проиграл!', True, (255, 255, 255))
+            window.blit(text_lose, (250, 250))
+
+        display.update()
